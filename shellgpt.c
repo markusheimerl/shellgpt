@@ -93,10 +93,6 @@ MLP* deserialize_mlp(FILE* f) {
     fread(mlp->W1, sizeof(float), w1_size, f);
     fread(mlp->W2, sizeof(float), w2_size, f);
     
-    // Skip optimizer state
-    int t; fread(&t, sizeof(int), 1, f);
-    fseek(f, (w1_size + w1_size + w2_size + w2_size) * sizeof(float), SEEK_CUR);
-    
     return mlp;
 }
 
@@ -225,10 +221,6 @@ Attention* deserialize_attention(FILE* f, int seq_len, int num_heads) {
     fread(attn->W_k, sizeof(float), w_size, f);
     fread(attn->W_v, sizeof(float), w_size, f);
     fread(attn->W_o, sizeof(float), w_size, f);
-    
-    // Skip optimizer state
-    int t; fread(&t, sizeof(int), 1, f);
-    fseek(f, 8 * w_size * sizeof(float), SEEK_CUR);
     
     return attn;
 }
@@ -363,10 +355,6 @@ GPT* load_gpt(const char* filename, int seq_len) {
     size_t emb_size = (size_t)vocab_size * d_model;
     fread(gpt->token_embedding, sizeof(float), emb_size, f);
     
-    // Skip optimizer state
-    int t; fread(&t, sizeof(int), 1, f);
-    fseek(f, 2 * emb_size * sizeof(float), SEEK_CUR);
-    
     gpt->transformer = deserialize_transformer(f, seq_len);
     
     fclose(f);
@@ -490,7 +478,8 @@ int main(int argc, char* argv[]) {
     signal(SIGINT, cleanup_and_exit);
     
     if (argc <= 1) {
-        fprintf(stderr, "Usage: %s <model_file.bin> [question]\n", argv[0]);
+        fprintf(stderr, "Usage: %s <model_file_trim.bin> [question]\n", argv[0]);
+        fprintf(stderr, "Note: This version requires trimmed model files (use 'make trim' first)\n");
         return 1;
     }
     
