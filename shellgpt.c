@@ -380,10 +380,11 @@ GPT* load_gpt(const char* filename, int seq_len) {
 static GPT* global_gpt = NULL;
 static unsigned short* global_tokens = NULL;
 static float* global_logits = NULL;
+static bool interactive_mode = true;
 
 void cleanup_and_exit(int signum) {
     (void)signum;
-    printf("\n\nExiting...\n");
+    if (interactive_mode) printf("\n\nExiting...\n");
     free(global_tokens);
     free(global_logits);
     free_gpt(global_gpt);
@@ -489,7 +490,7 @@ int main(int argc, char* argv[]) {
     signal(SIGINT, cleanup_and_exit);
     
     if (argc <= 1) {
-        fprintf(stderr, "Usage: %s <model_file.bin>\n", argv[0]);
+        fprintf(stderr, "Usage: %s <model_file.bin> [question]\n", argv[0]);
         return 1;
     }
     
@@ -503,6 +504,22 @@ int main(int argc, char* argv[]) {
     global_tokens = (unsigned short*)calloc(seq_len, sizeof(unsigned short));
     global_logits = (float*)malloc(global_gpt->vocab_size * sizeof(float));
     
+    // Non-interactive mode: command line question
+    if (argc > 2) {
+        interactive_mode = false;
+        char question[4096] = {0};
+        for (int i = 2; i < argc; i++) {
+            if (i > 2) strcat(question, " ");
+            strcat(question, argv[i]);
+        }
+        generate_response(global_gpt, question, global_tokens, global_logits);
+        free(global_tokens);
+        free(global_logits);
+        free_gpt(global_gpt);
+        return 0;
+    }
+    
+    // Interactive mode
     char question[4096];
     while (1) {
         printf("\n\033[1;36m?\033[0m ");
