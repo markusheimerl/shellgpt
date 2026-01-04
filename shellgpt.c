@@ -477,15 +477,23 @@ int main(int argc, char* argv[]) {
     srand(time(NULL));
     signal(SIGINT, cleanup_and_exit);
     
-    if (argc <= 1) {
-        fprintf(stderr, "Usage: %s <model_file_trim.bin> [question]\n", argv[0]);
-        return 1;
+    const char* model_path = NULL;
+    const int seq_len = 128;
+    int arg_offset = 1;
+    
+    // Check if first arg is a .bin file
+    if (argc > 1 && strstr(argv[1], ".bin")) {
+        model_path = argv[1];
+        arg_offset = 2;
+    } else {
+        // Default model location
+        model_path = "/usr/local/share/shellgpt/model.bin";
+        arg_offset = 1;
     }
     
-    const int seq_len = 128;
-    global_gpt = load_gpt(argv[1], seq_len);
+    global_gpt = load_gpt(model_path, seq_len);
     if (!global_gpt) {
-        fprintf(stderr, "Failed to load model\n");
+        fprintf(stderr, "Failed to load model from: %s\n", model_path);
         return 1;
     }
 
@@ -493,11 +501,11 @@ int main(int argc, char* argv[]) {
     global_logits = (float*)malloc(global_gpt->vocab_size * sizeof(float));
     
     // Non-interactive mode: command line question
-    if (argc > 2) {
+    if (argc > arg_offset) {
         interactive_mode = false;
         char question[4096] = {0};
-        for (int i = 2; i < argc; i++) {
-            if (i > 2) strcat(question, " ");
+        for (int i = arg_offset; i < argc; i++) {
+            if (i > arg_offset) strcat(question, " ");
             strcat(question, argv[i]);
         }
         generate_response(global_gpt, question, global_tokens, global_logits);
