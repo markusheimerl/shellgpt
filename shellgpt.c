@@ -479,7 +479,6 @@ int main(int argc, char* argv[]) {
     
     if (argc <= 1) {
         fprintf(stderr, "Usage: %s <model_file_trim.bin> [question]\n", argv[0]);
-        fprintf(stderr, "Note: This version requires trimmed model files (use 'make trim' first)\n");
         return 1;
     }
     

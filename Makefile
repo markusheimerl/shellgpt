@@ -11,22 +11,10 @@ trim.out: trim.c
 	$(CC) $(CFLAGS) trim.c -o trim.out
 
 trim: trim.out
-	@if [ ! -f "20260103_140047_gpt.bin" ]; then \
-		echo "Error: 20260103_140047_gpt.bin not found"; \
-		exit 1; \
-	fi
-	@echo "Trimming model file..."
-	./trim.out 20260103_140047_gpt.bin
-	@echo ""
-	@echo "File size comparison:"
-	@ls -lh 20260103_140047_gpt.bin 20260103_140047_gpt_trim.bin | awk '{print $$9 " : " $$5}'
+	@./trim.out $$(ls -t *_gpt.bin 2>/dev/null | grep -v "_trim.bin" | head -n1)
 
 run: shellgpt.out
-	@if [ ! -f "20260103_140047_gpt_trim.bin" ]; then \
-		echo "Trimmed model not found. Run 'make trim' first."; \
-		exit 1; \
-	fi
-	@OPENBLAS_NUM_THREADS=6 ./shellgpt.out 20260103_140047_gpt_trim.bin
+	@OPENBLAS_NUM_THREADS=6 ./shellgpt.out $$(ls -t *_gpt_trim.bin 2>/dev/null | head -n1)
 
 clean:
 	rm -f shellgpt.out trim.out
