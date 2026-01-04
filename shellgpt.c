@@ -370,7 +370,6 @@ GPT* load_gpt(const char* filename, int seq_len) {
     gpt->transformer = deserialize_transformer(f, seq_len);
     
     fclose(f);
-    printf("Model loaded from %s\n", filename);
     return gpt;
 }
 
@@ -495,19 +494,14 @@ int main(int argc, char* argv[]) {
     }
     
     const int seq_len = 128;
-    printf("Loading model from %s...\n", argv[1]);
     global_gpt = load_gpt(argv[1], seq_len);
     if (!global_gpt) {
         fprintf(stderr, "Failed to load model\n");
         return 1;
     }
-    printf("Model: d_model=%d, layers=%d, hidden=%d, vocab=%d\n",
-           global_gpt->d_model, global_gpt->num_layers, global_gpt->hidden_dim, global_gpt->vocab_size);
-    
+
     global_tokens = (unsigned short*)calloc(seq_len, sizeof(unsigned short));
     global_logits = (float*)malloc(global_gpt->vocab_size * sizeof(float));
-    
-    printf("Ready!\n");
     
     char question[4096];
     while (1) {
