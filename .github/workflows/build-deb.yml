@@ -1,0 +1,110 @@
+name: Build DEB Package
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version number'
+        required: true
+        default: '1.0.0'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        lfs: true
+    
+    - name: Checkout LFS objects
+      run: git lfs pull
+    
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y clang libopenblas-dev pigz
+    
+    - name: Decompress model
+      run: |
+        if [ -f *_gpt_trim.bin.gz ]; then
+          echo "Decompressing model..."
+          gunzip -k *_gpt_trim.bin.gz
+          ls -lh *_gpt_trim.bin
+        fi
+    
+    - name: Build binary
+      run: |
+        make clean
+        make shellgpt.out
+    
+    - name: Create package structure
+      run: |
+        VERSION="${{ github.event.inputs.version }}"
+        PACKAGE="shellgpt_${VERSION}_amd64"
+        
+        mkdir -p ${PACKAGE}/DEBIAN
+        mkdir -p ${PACKAGE}/usr/local/bin
+        mkdir -p ${PACKAGE}/usr/local/share/shellgpt
+        
+        cp shellgpt.out ${PACKAGE}/usr/local/bin/shellgpt
+        chmod 755 ${PACKAGE}/usr/local/bin/shellgpt
+        
+        MODEL=$(ls -t *_gpt_trim.bin 2>/dev/null | head -n1)
+        if [ -z "$MODEL" ]; then
+          echo "Error: No model file found"
+          ls -la
+          exit 1
+        fi
+        echo "Found model: $MODEL"
+        cp $MODEL ${PACKAGE}/usr/local/share/shellgpt/model.bin
+        chmod 644 ${PACKAGE}/usr/local/share/shellgpt/model.bin
+        
+        cat > ${PACKAGE}/DEBIAN/control << EOF
+        Package: shellgpt
+        Version: ${VERSION}
+        Section: utils
+        Priority: optional
+        Architecture: amd64
+        Depends: libopenblas0
+        Maintainer: Markus Heimerl <contact@markusheimerl.com>
+        Description: Offline natural language to shell command converter
+         Turns natural language requests into shell commands using a local GPT model.
+         No internet connection required.
+        EOF
+        
+        dpkg-deb --build ${PACKAGE}
+        
+        echo "PACKAGE_NAME=${PACKAGE}" >> $GITHUB_ENV
+    
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: v${{ github.event.inputs.version }}
+        name: Release v${{ github.event.inputs.version }}
+        draft: false
+        prerelease: false
+        files: |
+          ${{ env.PACKAGE_NAME }}.deb
+        body: |
+          ## Installation
+          
+          ```bash
+          wget https://github.com/markusheimerl/shellgpt/releases/download/v${{ github.event.inputs.version }}/${{ env.PACKAGE_NAME }}.deb
+          sudo dpkg -i ${{ env.PACKAGE_NAME }}.deb
+          ```
+          
+          ## Usage
+          
+          ```bash
+          shellgpt "list all pdf files in home directory"
+          ```
+          
+          ## Uninstall
+          
+          ```bash
+          sudo dpkg -r shellgpt
+          ```
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

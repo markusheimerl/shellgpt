@@ -10,7 +10,13 @@ shellgpt.out: shellgpt.c
 trim.out: trim.c
 	$(CC) $(CFLAGS) trim.c -o trim.out
 
-install: shellgpt.out
+decompress:
+	@if [ ! -f *_gpt_trim.bin ] && [ -f *_gpt_trim.bin.gz ]; then \
+		echo "Decompressing model..."; \
+		gunzip -k *_gpt_trim.bin.gz; \
+	fi
+
+install: shellgpt.out decompress
 	install -d $(DESTDIR)/usr/local/bin
 	install -d $(DESTDIR)/usr/local/share/shellgpt
 	install -m 755 shellgpt.out $(DESTDIR)/usr/local/bin/shellgpt
@@ -20,7 +26,6 @@ install: shellgpt.out
 		echo "✓ Installed model: $$MODEL -> /usr/local/share/shellgpt/model.bin"; \
 	else \
 		echo "⚠ Warning: No *_gpt_trim.bin file found"; \
-		echo "  Copy a model to /usr/local/share/shellgpt/model.bin manually"; \
 		exit 1; \
 	fi
 	@echo "✓ shellgpt installed successfully!"
@@ -35,10 +40,10 @@ uninstall:
 trim: trim.out
 	@./trim.out $$(ls -t *_gpt.bin 2>/dev/null | grep -v "_trim.bin" | head -n1)
 
-run: shellgpt.out
+run: shellgpt.out decompress
 	@OPENBLAS_NUM_THREADS=6 ./shellgpt.out $$(ls -t *_gpt_trim.bin 2>/dev/null | head -n1)
 
 clean:
 	rm -f shellgpt.out trim.out
 
-.PHONY: all run clean trim install uninstall
+.PHONY: all run clean trim install uninstall decompress
