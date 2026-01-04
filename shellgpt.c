@@ -488,7 +488,6 @@ void generate_response(GPT* gpt, const char* question, unsigned short* tokens, f
 int main(int argc, char* argv[]) {
     srand(time(NULL));
     signal(SIGINT, cleanup_and_exit);
-    openblas_set_num_threads(8);
     
     if (argc <= 1) {
         fprintf(stderr, "Usage: %s <model_file.bin>\n", argv[0]);
