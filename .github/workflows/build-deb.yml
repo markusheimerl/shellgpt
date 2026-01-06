@@ -27,7 +27,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y clang libopenblas-dev pigz
+        sudo apt-get install -y clang libopenblas-dev gzip
     
     - name: Decompress model
       run: |
