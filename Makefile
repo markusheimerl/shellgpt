@@ -41,7 +41,7 @@ trim: trim.out
 	@./trim.out $$(ls -t *_gpt.bin 2>/dev/null | grep -v "_trim.bin" | head -n1)
 
 run: shellgpt.out decompress
-	@OPENBLAS_NUM_THREADS=6 ./shellgpt.out $$(ls -t *_gpt_trim.bin 2>/dev/null | head -n1)
+	@./shellgpt.out $$(ls -t *_gpt_trim.bin 2>/dev/null | head -n1)
 
 clean:
 	rm -f shellgpt.out trim.out

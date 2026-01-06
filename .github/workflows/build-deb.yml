@@ -27,43 +27,19 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y clang libopenblas-dev pigz
+        sudo apt-get install -y clang libopenblas-dev
     
-    - name: Decompress model
-      run: |
-        if [ -f *_gpt_trim.bin.gz ]; then
-          echo "Decompressing model..."
-          gunzip -k *_gpt_trim.bin.gz
-          ls -lh *_gpt_trim.bin
-        fi
-    
-    - name: Build binary
-      run: |
-        make clean
-        make shellgpt.out
-    
-    - name: Create package structure
+    - name: Build and create package
       run: |
         VERSION="${{ github.event.inputs.version }}"
         PACKAGE="shellgpt_${VERSION}_amd64"
         
+        # Build binary and install to package directory
+        make clean
+        make install DESTDIR="${PACKAGE}"
+        
+        # Create DEBIAN control file
         mkdir -p ${PACKAGE}/DEBIAN
-        mkdir -p ${PACKAGE}/usr/bin
-        mkdir -p ${PACKAGE}/usr/share/shellgpt
-        
-        cp shellgpt.out ${PACKAGE}/usr/bin/shellgpt
-        chmod 755 ${PACKAGE}/usr/bin/shellgpt
-        
-        MODEL=$(ls -t *_gpt_trim.bin 2>/dev/null | head -n1)
-        if [ -z "$MODEL" ]; then
-          echo "Error: No model file found"
-          ls -la
-          exit 1
-        fi
-        echo "Found model: $MODEL"
-        cp $MODEL ${PACKAGE}/usr/share/shellgpt/model.bin
-        chmod 644 ${PACKAGE}/usr/share/shellgpt/model.bin
-        
         cat > ${PACKAGE}/DEBIAN/control << EOF
         Package: shellgpt
         Version: ${VERSION}
@@ -76,6 +52,7 @@ jobs:
          No internet connection required.
         EOF
         
+        # Build the .deb package
         dpkg-deb --build ${PACKAGE}
         
         echo "PACKAGE_NAME=${PACKAGE}" >> $GITHUB_ENV

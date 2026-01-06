@@ -474,6 +474,7 @@ void generate_response(GPT* gpt, const char* question, unsigned short* tokens, f
 }
 
 int main(int argc, char* argv[]) {
+    openblas_set_num_threads(6);
     srand(time(NULL));
     signal(SIGINT, cleanup_and_exit);
     
