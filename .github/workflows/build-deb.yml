@@ -70,7 +70,6 @@ jobs:
         Section: utils
         Priority: optional
         Architecture: amd64
-        Depends: libopenblas0
         Maintainer: Markus Heimerl <contact@markusheimerl.com>
         Description: Offline natural language to shell command converter
          Turns natural language requests into shell commands using a local GPT model.
