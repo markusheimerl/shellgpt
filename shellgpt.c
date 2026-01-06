@@ -487,7 +487,7 @@ int main(int argc, char* argv[]) {
         arg_offset = 2;
     } else {
         // Default model location
-        model_path = "/usr/local/share/shellgpt/model.bin";
+        model_path = "/usr/share/shellgpt/model.bin";
         arg_offset = 1;
     }
     

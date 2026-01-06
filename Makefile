@@ -17,13 +17,13 @@ decompress:
 	fi
 
 install: shellgpt.out decompress
-	install -d $(DESTDIR)/usr/local/bin
-	install -d $(DESTDIR)/usr/local/share/shellgpt
-	install -m 755 shellgpt.out $(DESTDIR)/usr/local/bin/shellgpt
+	install -d $(DESTDIR)/usr/bin
+	install -d $(DESTDIR)/usr/share/shellgpt
+	install -m 755 shellgpt.out $(DESTDIR)/usr/bin/shellgpt
 	@MODEL=$$(ls -t *_gpt_trim.bin 2>/dev/null | head -n1); \
 	if [ -n "$$MODEL" ]; then \
-		install -m 644 $$MODEL $(DESTDIR)/usr/local/share/shellgpt/model.bin; \
-		echo "✓ Installed model: $$MODEL -> /usr/local/share/shellgpt/model.bin"; \
+		install -m 644 $$MODEL $(DESTDIR)/usr/share/shellgpt/model.bin; \
+		echo "✓ Installed model: $$MODEL -> /usr/share/shellgpt/model.bin"; \
 	else \
 		echo "⚠ Warning: No *_gpt_trim.bin file found"; \
 		exit 1; \
@@ -33,8 +33,8 @@ install: shellgpt.out decompress
 	@echo "Usage: shellgpt \"your question here\""
 
 uninstall:
-	rm -f /usr/local/bin/shellgpt
-	rm -rf /usr/local/share/shellgpt
+	rm -f /usr/bin/shellgpt
+	rm -rf /usr/share/shellgpt
 	@echo "✓ shellgpt uninstalled"
 
 trim: trim.out
