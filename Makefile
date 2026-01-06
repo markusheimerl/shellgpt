@@ -1,6 +1,6 @@
 CC = clang
 CFLAGS = -O3 -march=native -ffast-math -Wall -Wextra
-LDFLAGS = -lopenblas -lm -flto
+LDFLAGS = -static -lopenblas -lm
 
 all: shellgpt.out trim.out
 
