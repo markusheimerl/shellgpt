@@ -23,14 +23,11 @@ install: shellgpt.out decompress
 	@MODEL=$$(ls -t *_gpt_trim.bin 2>/dev/null | head -n1); \
 	if [ -n "$$MODEL" ]; then \
 		install -m 644 $$MODEL $(DESTDIR)/usr/share/shellgpt/model.bin; \
-		echo "✓ Installed model: $$MODEL -> /usr/share/shellgpt/model.bin"; \
+		echo "✓ Found model: $$MODEL"; \
 	else \
 		echo "⚠ Warning: No *_gpt_trim.bin file found"; \
 		exit 1; \
 	fi
-	@echo "✓ shellgpt installed successfully!"
-	@echo ""
-	@echo "Usage: shellgpt \"your question here\""
 
 uninstall:
 	rm -f /usr/bin/shellgpt
